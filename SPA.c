@@ -81,9 +81,9 @@ interrupt void SCIRXINTB_ISR(void)     // SCI-B
 	static unsigned int i = 0;
 	static unsigned int  start_flag = 0;
 
-//通信帧内容：0xaa 0xab 起始帧
+//通信帧内容：0xaa 0xab 起始帧   可自己定义，但相应的也要MATLAB上位机发送帧格式
 //0x?? 0x?? 0x?? 3位数据内容帧
-//0xff 结尾帧
+//0xff 结尾帧	可自己定义，但相应的也要MATLAB上位机发送帧格式
 //如果格式不对，丢弃一帧数据
 	Sci_Rx_Buf = ScibRegs.SCIRXBUF.all; //接收数据
 
