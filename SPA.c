@@ -1,28 +1,28 @@
 
 
-int DEBUG_INS[3];
-unsigned int S_RECI_EVENT = 0;
-float P_ctrl[3],I_ctrl[3];
-unsigned int S_SEND_CNT = 0;
+int DEBUG_INS[3];			//上位机调试指令组
+unsigned int S_RECI_EVENT = 0;		//事件组
+float P_ctrl[3],I_ctrl[3];		//可调范围0-2，精度16位，可以自己调整
+unsigned int S_SEND_CNT = 0;		//MATLAB_SCOP发送计数器
 
 void Event_Process(void)
 {
-	if(S_RECI_EVENT != 0)
+	if(S_RECI_EVENT != 0)			//有事件未处理
 	{
 		if(S_RECI_EVENT & RECI_PARA)	//判断事件
 		{
 			unsigned int tmp = 0;
-			tmp = (DEBUG_INS[1]<<8)+DEBUG_INS[2];
-			switch(DEBUG_INS[0])
+			tmp = (DEBUG_INS[1]<<8)+DEBUG_INS[2];	//取成16位无符号整型
+			switch(DEBUG_INS[0])			//第一个字节为指令功能字节，例如0x01为发送MATLAB_SCOP，第二字节和第三字节为发送次数。
 			{
 			case 0x01:S_SEND_CNT = tmp;break;
-			case 0x02:P_ctrl[0] = ((float)tmp)/32768;break;
-			case 0x03:I_ctrl[0] = ((float)tmp)/32768;break;
+			case 0x02:P_ctrl[0] = ((float)tmp)/32768;break;	//0-2可调范围16位精度，上位机下位机精度与范围必须一致。下位机接收到数据后
+			case 0x03:I_ctrl[0] = ((float)tmp)/32768;break;//再进行浮点数据转换处理
 			case 0x04:P_ctrl[1] = ((float)tmp)/32768;break;
 			case 0x05:I_ctrl[1] = ((float)tmp)/32768;break;
 			case 0x06:P_ctrl[2] = ((float)tmp)/32768;break;
 			case 0x07:I_ctrl[2] = ((float)tmp)/32768;break;
-			case 0x08:S_RECI_EVENT |= RETURN_PARA;break;
+			case 0x08:S_RECI_EVENT |= RETURN_PARA;break;	//function instrument将下位机可调参数返回给上位机
 			default:break;
 			}
 			S_RECI_EVENT ^= RECI_PARA;		//清除当前事件标志位
@@ -32,13 +32,14 @@ void Event_Process(void)
 			Return_Para();				//返回当前事件
 			S_RECI_EVENT ^= RETURN_PARA;
 		}
-		else
+		else						//事件错误，清空标志位
 		{
 			S_RECI_EVENT = 0;
 		}
 	}
 }
 //使用串口将部分数据返回给上位机进行显示，MATLAB程序详见Matlab_Serial_Scop项目
+//发送数据结构
 void Send_Matlab(int mode,int *ch)
 {
 	unsigned int send_data[21]={0};
@@ -69,7 +70,7 @@ void Send_Matlab(int mode,int *ch)
     	Send_Char(send_data[i]);
     }
 }
-
+//上位机参数返回函数
 void Return_Para(void)
 {
 	int i;
@@ -109,7 +110,7 @@ void Return_Para(void)
 //中断函数 需根据芯片寄存器更改部分参数
 interrupt void SCIRXINTB_ISR(void)     // SCI-B
 {
-	static unsigned int Sci_Rx_Buf = 0;
+	unsigned int Sci_Rx_Buf;
 	static unsigned int i = 0;
 	static unsigned int  start_flag = 0;
 
@@ -135,14 +136,12 @@ interrupt void SCIRXINTB_ISR(void)     // SCI-B
 	else if(i == 3 && Sci_Rx_Buf == 0xff)	//第六位 结束位0xff
 	{
 		S_RECI_EVENT |= RECI_PARA;	//生成事件
-		start_flag = 0;
+		start_flag = 0;			//清空状态标志
 	}
 	else
 	{
 		i = 0;
 		start_flag = 0;
 	}
-
-    PieCtrlRegs.PIEACK.all=0x0100;  //使得同组其他中断能够得到响应
-    EINT;  //开全局中断vcc
+	//记得清除中断标志位，不同芯片的标志位不同，在这就不迷惑大家了
 }
