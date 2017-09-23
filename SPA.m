@@ -100,7 +100,7 @@ pause(0.02);
             d = [];
         end
     end
-    fclose(s);
+    fclose(s);      %关闭串口
     delete(s);
     clear s;
     clear all;
