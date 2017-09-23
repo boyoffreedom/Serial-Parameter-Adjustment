@@ -8,11 +8,11 @@ if exist('s') == 1
     clc;
 end
 
-s = serial('COM4');            %选择串口~
-s.BaudRate = 115200;              %选择波特率
-s.DataBits = 8;                 %设置数据位数
-s.StopBits = 1;                 %设置停止位
-set(s,'Parity', 'none','FlowControl','none');   %无校验位，无流控制
+s = serial('COM4');            %选择串口~select serial port
+s.BaudRate = 115200;              %选择波特率 set baud rate
+s.DataBits = 8;                 %设置数据位数 set data bits 
+s.StopBits = 1;                 %设置停止位  set stop bit
+set(s,'Parity', 'none','FlowControl','none');   %无校验位，无流控制 set parity and flow control
 s.ReadAsyncMode = 'continuous';                 %异步接收模式为连续
 s.BytesAvailableFcnMode = 'byte';               %回调函数模式为字节
 exist_s = 0;
