@@ -3,6 +3,7 @@
 int DEBUG_INS[3];
 unsigned int S_RECI_EVENT = 0;
 float P_ctrl[3],I_ctrl[3];
+unsigned int S_SEND_CNT = 0;
 
 void Event_Process(void)
 {
@@ -36,6 +37,37 @@ void Event_Process(void)
 			S_RECI_EVENT = 0;
 		}
 	}
+}
+//使用串口将部分数据返回给上位机进行显示，MATLAB程序详见Matlab_Serial_Scop项目
+void Send_Matlab(int mode,int *ch)
+{
+	unsigned int send_data[21]={0};
+    int i;
+    send_data[ 0] = 0xff;
+    send_data[ 1] = 0xa5;
+    send_data[ 2] = 0x5a+mode;
+    send_data[ 3] = (unsigned int)((ch[0]&0xff00)>>8);
+    send_data[ 4] = (unsigned int) (ch[0]&0x00ff);
+    send_data[ 5] = (unsigned int)((ch[1]&0xff00)>>8);
+    send_data[ 6] = (unsigned int) (ch[1]&0x00ff);
+    send_data[ 7] = (unsigned int)((ch[2]&0xff00)>>8);
+    send_data[ 8] = (unsigned int) (ch[2]&0x00ff);
+    send_data[ 9] = (unsigned int)((ch[3]&0xff00)>>8);
+    send_data[10] = (unsigned int) (ch[3]&0x00ff);
+    send_data[11] = (unsigned int)((ch[4]&0xff00)>>8);
+    send_data[12] = (unsigned int) (ch[4]&0x00ff);
+    send_data[13] = (unsigned int)((ch[5]&0xff00)>>8);
+    send_data[14] = (unsigned int) (ch[5]&0x00ff);
+    send_data[15] = (unsigned int)((ch[6]&0xff00)>>8);
+    send_data[16] = (unsigned int) (ch[6]&0x00ff);
+    send_data[17] = (unsigned int)((ch[7]&0xff00)>>8);
+    send_data[18] = (unsigned int) (ch[7]&0x00ff);
+    send_data[19] = (unsigned int)((ch[8]&0xff00)>>8);
+    send_data[20] = (unsigned int) (ch[8]&0x00ff);
+    for(i=0;i<21;i++)
+    {
+    	Send_Char(send_data[i]);
+    }
 }
 
 void Return_Para(void)
